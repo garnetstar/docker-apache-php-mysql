@@ -1,0 +1,42 @@
+version: "2"
+services:
+ data_mysql:
+  image: busybox
+  volumes:
+  - ./mysql:/var/lib/mysql
+ web:
+# jako image se pouzije Dockerfile
+  build:
+   context: .
+  container_name: idaho-web
+  ports:
+  - "80:80"
+  volumes:
+  - ./www:/app/www
+  - ./apache-config.conf:/etc/apache2/sites-available/000-default.conf
+  links:
+  - db:db
+  env_file:
+  - .env
+ db:
+  image: mysql:5.7
+  container_name: idaho-db
+  expose:
+  - "3306"
+  ports:
+  - "33062:3306"
+  volumes_from:
+  - data_mysql
+  environment:
+  - MYSQL_ROOT_PASSWORD=${DB_PASSWORD}
+  - MYSQL_DATABASE=${DB_NAME}
+#  - MYSQL_USER=${DB_USER}
+ adminer:
+  image: adminer
+  container_name: idaho-adminer
+  ports:
+  - "8080:8080"
+  links:
+  - db:db
+  environment:
+  - ADMINER_DESIGN=nette
